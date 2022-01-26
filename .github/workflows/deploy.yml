@@ -11,19 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # Logger inn på vår docker bruker
+      # ? Logger inn på vår docker bruker
       - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      # Bygger TEST image av vårt prosjekt. MERK vi bruker Dockerfile.dev, siden det er test
-      # Smart å bruke naming convention: dockerID/github-repo
-      - run: docker build -t gleative/devops-with-react-app -f Dockerfile.dev .
-      # Starter container og kjører TEST
+      # ? Bygger TEST image av vårt prosjekt. MERK vi bruker Dockerfile.dev, siden det er test
+      # * Smart å bruke naming convention: dockerID/github-repo
+      - run: docker build -t gleative/react-app-test -f Dockerfile.dev .
+      # ? Starter container og kjører TEST
       # -e - Environmental variable
       # CI=true:
       # - Gjør at Jest MÅ kjøre i CI-mode
       # - Som gjør at tester blir kjørt EN GANG, og ikke har starter noe WATCHER
       # - Altså, den tester, også ser vi etter status kode (Fordi det er eneste vi bryr oss om!), også quitter test.
       # -- Slik at den ikke blir STUCK der
-      - run: docker run -e CI=true gleative/react-test npm test
+      - run: docker run -e CI=true gleative/react-app-test npm test
 
       - name: Generate deployment package
         run: zip -r deploy.zip . -x '*.git*'

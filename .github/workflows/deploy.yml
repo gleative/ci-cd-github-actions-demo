@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    # ? Tror dette definerer hvilket OS vi kjører på
+    # ? Definerer hvilket OS vi kjører på
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

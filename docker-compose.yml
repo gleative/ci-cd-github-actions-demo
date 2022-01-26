@@ -1,0 +1,13 @@
+# Production compose config file
+# - Siden vi bruker AWS, AWS beanstalk ser etter "docker-compose.yml" for å bygge single container file og ikke Dockerfile ...
+# -- Så vi måtte sette opp denne, slik at AWS kjører denne, så appen skal hostes der!
+# --- (Husk, PROD skal ikke ha noe test i seg! Derfor vi måtte flytte ORIGINALE docker-compose.yml til docker-compose-dev.yml)
+# --- (Dette er i scenario hvor Platform branch er "Docker running on 64bit Amazon Linux 2")
+version: '3'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '80:80'

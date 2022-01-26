@@ -1,0 +1,30 @@
+version: '3'
+services:
+  # Kan bruke hva slags navn du vil
+  web:
+    build:
+      # ? Setter opp dette fordi, i dette eksempelet bruker vi Dockerfile.dev
+      # ? Du må definere filen, siden Docker ser ikke etter Dockerfile.dev default
+      # Setter hvor WORKDIR skal være (.) blir root i dette tilfellet
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - '3000:3000'
+    volumes:
+      # Legger til BOOKMARK (peker) til "node_modules" i containeren
+      # Siden denne mappen er I containeren, og vi er avhengig av den
+      - /usr/app/node_modules
+      # Kopier alt fra directory du er i, og MAPPER(:) det til /usr/app mappen i containeren
+      - ./:/usr/app
+  # A own service JUST for testing
+  # Vi har denne veldig lik til web-app. Bare at vi ikke trenger "ports"
+  # OG, vi OVERRIDER CMD i Dockerfile.. siden vi vil kjøre "npm run test" her!
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /usr/app/node_modules
+      - ./:/usr/app
+    # ! Overrides the CMD in Dockerfile
+    command: ['npm', 'run', 'test']

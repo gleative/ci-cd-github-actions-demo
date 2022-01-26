@@ -1,4 +1,4 @@
-# devops-with-react-app
+# ci-cd-github-actions-demo
 CI/CD implementation og a react app. This is a practice project.
 
 ## Techstack

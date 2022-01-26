@@ -1,0 +1,54 @@
+# BTW - Navnet på yaml fil, kan du bestemme selv
+name: Deploy Frontend
+# ? Vi sier her: BARE deploy når det skjer "push" i MAIN branchen
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    # ? Tror dette definerer hvilket OS vi kjører på
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # Logger inn på vår docker bruker
+      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      # Bygger TEST image av vårt prosjekt. MERK vi bruker Dockerfile.dev, siden det er test
+      # Smart å bruke naming convention: dockerID/github-repo
+      - run: docker build -t gleative/devops-with-react-app -f Dockerfile.dev .
+      # Starter container og kjører TEST
+      # -e - Environmental variable
+      # CI=true:
+      # - Gjør at Jest MÅ kjøre i CI-mode
+      # - Som gjør at tester blir kjørt EN GANG, og ikke har starter noe WATCHER
+      # - Altså, den tester, også ser vi etter status kode (Fordi det er eneste vi bryr oss om!), også quitter test.
+      # -- Slik at den ikke blir STUCK der
+      - run: docker run -e CI=true gleative/react-test npm test
+
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+
+        # EB - Elasticbeanstalk
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          # ? Keysa - Får du igjennom å lage en bruker i "IAM" (Også gå på "Users") service i AWS
+          # ! NB: Disse må du ALDRI expose til noen ... ellers får de tilgang til din AWS!!
+          # * secrets.<NavnPåSecret> - Disse er ENV (miljø) variabler vi henter fra vår GITHUB REPO.
+          # * De holder på keysa for å kunne få tilgang til AWS miljøet som er satt opp
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          # Secret_key - Blir bare vist EN gang i AWS, så skriv den ned!
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          # Application name som du finner i AWS Elastic Beanstalk dashboard
+          application_name: devops-with-react-app
+          # Environment name (navnet på prosjektet i AWS) finner du også i dashboard
+          environment_name: Devopswithreactapp-env
+          # Se det på repoen hvor du har filene dine!
+          # For å finne "bucket name" så må du søke på "S3" gå inn på det, og i tabellen, så velger du den som har
+          # - samme region som urlen!
+          existing_bucket_name: elasticbeanstalk-us-east-2-524767589356
+          region: us-east-2
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
+# ? Du kan se i URLen hvor region er (us-east-2)
+# ! URL til prosjektet/miljøet vårt i AWS: Devopswithreactapp-env.eba-ymrpvkzp.us-east-2.elasticbeanstalk.com
